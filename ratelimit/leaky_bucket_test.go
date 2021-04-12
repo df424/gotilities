@@ -11,7 +11,7 @@ func TestLeakyBucketRateLimiter(t *testing.T) {
 	t.Run("Test1", func(t *testing.T) {
 		done := make(chan bool, 20)
 
-		rateLimiter := NewLeakyBucketRateLimiter(context.TODO(), 10)
+		rateLimiter := NewLeakyBucketRateLimiter(context.TODO(), 10, 5)
 		start_t := time.Now()
 
 		for i := 0; i < 20; i++ {

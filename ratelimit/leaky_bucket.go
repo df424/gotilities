@@ -9,18 +9,20 @@ import (
 )
 
 type LeakyBucketRateLimiter struct {
-	RequestsPerSecond int
+	RequestsPerSecond float32
 	requestsRemaining int
+	maxRequests       int
 	Canceled          bool
 	mutex             sync.Mutex
 	pendingRequests   []chan bool
 }
 
 // NewLeakyBucketRateLimiter ... Construct a new LeakyBucketRateLimiter.
-func NewLeakyBucketRateLimiter(ctx context.Context, reqsPerSecond int) *LeakyBucketRateLimiter {
+func NewLeakyBucketRateLimiter(ctx context.Context, reqsPerSecond float32, maxRequests int) *LeakyBucketRateLimiter {
 	rl := LeakyBucketRateLimiter{
 		RequestsPerSecond: reqsPerSecond,
 		requestsRemaining: 0,
+		maxRequests:       maxRequests,
 		Canceled:          false,
 		mutex:             sync.Mutex{},
 	}
@@ -57,7 +59,7 @@ func (rl *LeakyBucketRateLimiter) updateBucket() {
 		panic("Caller tried to get a token from a cancelled rate limiter")
 	}
 
-	rl.requestsRemaining = math.MinInt(rl.requestsRemaining+1, rl.RequestsPerSecond)
+	rl.requestsRemaining = math.MinInt(rl.requestsRemaining+1, rl.maxRequests)
 
 	for rl.requestsRemaining > 0 && len(rl.pendingRequests) > 0 {
 		pendingReq := rl.pendingRequests[0]
